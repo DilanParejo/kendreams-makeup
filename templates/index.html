@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kendreams Makeup</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💄</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar__inner">
+      <a class="navbar__logo" onclick="navigate('home')">
+        <span class="navbar__logo-icon">💄</span>
+        <div class="navbar__logo-text">KENDREAMS<span>MAKEUP</span></div>
+      </a>
+      <div class="navbar__nav">
+        <a class="nav-link" data-page="home" onclick="navigate('home')">Inicio</a>
+        <a class="nav-link" data-page="catalogo" onclick="navigate('catalogo')">Catálogo</a>
+        <a class="nav-link" href="https://wa.me/573001234567" target="_blank">Contacto</a>
+      </div>
+      <div class="navbar__actions">
+        <div id="user-nav"></div>
+        <button class="cart-btn" onclick="navigate('carrito')" title="Ver carrito">
+          🛒
+          <span id="cart-count"></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+  <main id="main"></main>
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <div class="footer__logo">💄 KENDREAMS MAKEUP</div>
+          <p>Tu destino de belleza en Soledad, Atlántico.</p>
+        </div>
+        <div>
+          <h4>Categorías</h4>
+          <ul>
+            <li><a onclick="navigate('catalogo',{categoria:'bases'})">Bases</a></li>
+            <li><a onclick="navigate('catalogo',{categoria:'labiales'})">Labiales</a></li>
+            <li><a onclick="navigate('catalogo',{categoria:'ojos'})">Ojos</a></li>
+            <li><a onclick="navigate('catalogo',{categoria:'rubor'})">Rubor</a></li>
+            <li><a onclick="navigate('catalogo',{categoria:'iluminador'})">Iluminador</a></li>
+            <li><a onclick="navigate('catalogo',{categoria:'contorno'})">Contorno</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Contacto</h4>
+          <div class="footer__contact">
+            <span>📍 Soledad, Atlántico</span>
+            <a href="https://wa.me/573001234567" target="_blank">📱 WhatsApp: 300 123 4567</a>
+            <a href="https://instagram.com/kendreams_makeup" target="_blank">📸 @kendreams_makeup</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer__copy">© 2024 KENDREAMS MAKEUP — Soledad, Atlántico · Todos los derechos reservados</div>
+    </div>
+  </footer>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
