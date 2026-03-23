@@ -336,11 +336,84 @@ function renderCarrito(main) {
     </div>`).join("");
 }
 
-async function confirmarPedido() {
+function confirmarPedido() {
   if (!State.user) { navigate("login"); showToast("Inicia sesión para confirmar tu pedido", "info"); return; }
+  const main = document.getElementById("main");
+  main.innerHTML = `
+    <section class="section">
+      <div class="container" style="max-width:600px">
+        <h1 class="page-title">Finalizar Pedido 🛒</h1>
+
+        <div class="form-group">
+          <label>Nombre completo</label>
+          <input type="text" id="co-nombre" class="input" placeholder="Tu nombre completo">
+        </div>
+        <div class="form-group">
+          <label>Teléfono / WhatsApp</label>
+          <input type="text" id="co-telefono" class="input" placeholder="3001234567">
+        </div>
+        <div class="form-group">
+          <label>Dirección</label>
+          <input type="text" id="co-direccion" class="input" placeholder="Calle 10 # 5-20">
+        </div>
+        <div class="form-group">
+          <label>Barrio</label>
+          <input type="text" id="co-barrio" class="input" placeholder="Tu barrio">
+        </div>
+        <div class="form-group">
+          <label>Ciudad</label>
+          <input type="text" id="co-ciudad" class="input" placeholder="Soledad">
+        </div>
+
+        <h3 style="margin:1.5rem 0 1rem">Forma de pago</h3>
+        <div style="display:flex;gap:1rem;margin-bottom:1.5rem">
+          <button id="btn-contra" class="btn btn--primary" onclick="seleccionarPago('contra_entrega')">🚗 Contra entrega</button>
+          <button id="btn-nequi" class="btn btn--outline" onclick="seleccionarPago('nequi')">📱 Nequi</button>
+        </div>
+
+        <div id="info-pago" style="display:none;background:#fff3f7;border-radius:12px;padding:1.5rem;text-align:center;margin-bottom:1.5rem">
+          <p style="font-weight:600;margin-bottom:1rem">Escanea el QR para pagar por Nequi:</p>
+          <img src="/static/qr-nequi.jpg" alt="QR Nequi" style="width:220px;border-radius:12px;margin-bottom:1rem">
+          <p>📞 Número: <strong>3247020486</strong></p>
+          <p style="font-size:.85rem;color:#888">Luego de pagar, sube el comprobante por WhatsApp</p>
+        </div>
+
+        <div class="cart-summary__total" style="margin-bottom:1.5rem">
+          <span>Total a pagar</span>
+          <span>${cop(cartTotal())}</span>
+        </div>
+
+        <button class="btn btn--primary btn--lg btn--full" onclick="enviarPedido()">✅ Confirmar pedido</button>
+        <button class="btn btn--ghost btn--full" style="margin-top:.5rem" onclick="navigate('carrito')">← Volver al carrito</button>
+      </div>
+    </section>`;
+  seleccionarPago("contra_entrega");
+}
+
+function seleccionarPago(tipo) {
+  State.formaPago = tipo;
+  document.getElementById("btn-contra").className = tipo === "contra_entrega" ? "btn btn--primary" : "btn btn--outline";
+  document.getElementById("btn-nequi").className  = tipo === "nequi"           ? "btn btn--primary" : "btn btn--outline";
+  document.getElementById("info-pago").style.display = tipo === "nequi" ? "block" : "none";
+}
+
+async function enviarPedido() {
+  const nombre    = document.getElementById("co-nombre").value.trim();
+  const telefono  = document.getElementById("co-telefono").value.trim();
+  const direccion = document.getElementById("co-direccion").value.trim();
+  const barrio    = document.getElementById("co-barrio").value.trim();
+  const ciudad    = document.getElementById("co-ciudad").value.trim();
+  const forma_pago = State.formaPago || "contra_entrega";
+
+  if (!nombre || !telefono || !direccion) {
+    showToast("Por favor completa nombre, teléfono y dirección", "error"); return;
+  }
   try {
     const items = State.cart.map(i => ({ producto_id: i.id, cantidad: i.cantidad }));
-    const data = await api("/pedidos", { method: "POST", body: JSON.stringify({ items }) });
+    const data = await api("/pedidos", {
+      method: "POST",
+      body: JSON.stringify({ items, nombre_cliente: nombre, telefono, direccion, barrio, ciudad, forma_pago })
+    });
     State.cart = []; saveCart(); renderCartBadge();
     showToast(`🎉 Pedido #${data.pedido_id} confirmado!`);
     navigate("pedidos");
