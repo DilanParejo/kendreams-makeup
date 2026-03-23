@@ -277,7 +277,7 @@ async function renderProducto(main, id) {
               <button class="btn btn--primary btn--lg" onclick="addToCart({id:${p.id},nombre:'${p.nombre.replace(/'/g,"\\'")}',precio:${p.precio},imagen_url:'${p.imagen_url}'})">
                 🛒 Agregar al Carrito
               </button>
-              <a href="https://wa.me/573001234567?text=Hola! Me interesa ${encodeURIComponent(p.nombre)}" target="_blank" class="btn btn--wa btn--lg">
+              <a href="https://wa.me/573247020486?text=Hola! Me interesa ${encodeURIComponent(p.nombre)}" target="_blank" class="btn btn--wa btn--lg">
                 📲 Pedir por WhatsApp
               </a>
             </div>
@@ -321,7 +321,7 @@ function renderCarrito(main) {
             <div class="cart-summary__row"><span>Envío</span><span>A convenir</span></div>
             <div class="cart-summary__total"><span>Total</span><span>${cop(cartTotal())}</span></div>
             <button class="btn btn--primary btn--lg" onclick="confirmarPedido()">✅ Confirmar pedido</button>
-            <a href="https://wa.me/573001234567" target="_blank" class="btn btn--wa btn--lg">📲 Contactar por WhatsApp</a>
+            <a href="https://wa.me/573247020486" target="_blank" class="btn btn--wa btn--lg">📲 Contactar por WhatsApp</a>
             <button class="btn btn--ghost" onclick="navigate('catalogo')">Seguir comprando</button>
           </div>
         </div>
