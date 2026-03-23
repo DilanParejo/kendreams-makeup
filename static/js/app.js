@@ -489,4 +489,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
 ⚠️ **MUY IMPORTANTE** — en la primera línea del archivo cambia esto:
 ```
-const API = "kendreams-makeup-production.up.railway.app";
+const API = "https://kendreams-makeup-production.up.railway.app/api";
