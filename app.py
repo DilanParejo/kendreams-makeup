@@ -20,6 +20,7 @@ DB_CONFIG = {
     "database": os.getenv("DB_NAME", "kendreams"),
     "charset":  "utf8mb4",
     "cursorclass": pymysql.cursors.DictCursor,
+    "ssl_disabled": True,
 }
 JWT_SECRET  = os.getenv("JWT_SECRET", "kendreams_super_secret_2024")
 JWT_EXPIRES = datetime.timedelta(hours=24)
