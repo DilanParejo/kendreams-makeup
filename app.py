@@ -184,6 +184,18 @@ def crear_pedido():
     items = d.get("items", [])
     if not items:
         return err("El carrito esta vacio")
+
+    nombre_cliente = (d.get("nombre_cliente") or "").strip()
+    telefono       = (d.get("telefono") or "").strip()
+    direccion      = (d.get("direccion") or "").strip()
+    barrio         = (d.get("barrio") or "").strip()
+    ciudad         = (d.get("ciudad") or "").strip()
+    forma_pago     = (d.get("forma_pago") or "contra_entrega").strip()
+
+    if not nombre_cliente or not telefono or not direccion:
+        return err("Nombre, telefono y direccion son obligatorios")
+    if forma_pago not in ["contra_entrega", "nequi"]:
+        return err("Forma de pago invalida")
     total = 0
     detalle = []
     for item in items:
@@ -195,13 +207,21 @@ def crear_pedido():
         precio = float(prod["precio"])
         total += precio * item["cantidad"]
         detalle.append((prod, item["cantidad"], precio))
-    oid = query("INSERT INTO pedidos (usuario_id, total, notas) VALUES (%s,%s,%s)",
-                (request.user_id, total, d.get("notas", "")), commit=True)
+    oid = query("""
+        INSERT INTO pedidos
+          (usuario_id, total, notas, nombre_cliente, telefono, direccion, barrio, ciudad, forma_pago)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    """, (request.user_id, total, d.get("notas",""),
+          nombre_cliente, telefono, direccion, barrio, ciudad, forma_pago), commit=True)
     for prod, cant, precio in detalle:
         query("""INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario)
             VALUES (%s,%s,%s,%s)""", (oid, prod["id"], cant, precio), commit=True)
         query("UPDATE productos SET stock = stock - %s WHERE id=%s", (cant, prod["id"]), commit=True)
-    return ok({"pedido_id": oid, "total": total}, "Pedido creado", 201)
+    return ok({
+        "pedido_id": oid,
+        "total": total,
+        "forma_pago": forma_pago
+    }, "Pedido creado", 201)
 
 @app.route("/api/pedidos", methods=["GET"])
 @token_required
@@ -244,7 +264,14 @@ def cambiar_estado(oid):
         return err("Estado invalido")
     query("UPDATE pedidos SET estado=%s WHERE id=%s", (nuevo_estado, oid), commit=True)
     return ok(msg="Estado actualizado")
-
+@app.route("/api/pedidos/<int:oid>/verificar-nequi", methods=["PATCH"])
+@admin_required
+def verificar_nequi(oid):
+    pedido = query("SELECT * FROM pedidos WHERE id=%s", (oid,), one=True)
+    if not pedido:
+        return err("Pedido no encontrado", 404)
+    query("UPDATE pedidos SET pago_verificado=1, estado='confirmado' WHERE id=%s", (oid,), commit=True)
+    return ok(msg="Pago Nequi verificado y pedido confirmado")
 @app.errorhandler(401)
 def unauthorized(e): return err(str(e.description or "No autorizado"), 401)
 @app.errorhandler(403)
