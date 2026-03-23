@@ -1,4 +1,4 @@
-const API = "https://TU-PROYECTO.up.railway.app/api";
+const API = "https://kendreams-makeup-production.up.railway.app/api";
 
 const State = {
   user:     JSON.parse(localStorage.getItem("km_user") || "null"),
@@ -483,10 +483,3 @@ document.addEventListener("DOMContentLoaded", () => {
   const hash = location.hash.replace("#", "") || "home";
   renderPage(hash);
 });
-```
-
----
-
-⚠️ **MUY IMPORTANTE** — en la primera línea del archivo cambia esto:
-```
-const API = "https://kendreams-makeup-production.up.railway.app/api";
