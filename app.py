@@ -272,9 +272,9 @@ def verificar_nequi(oid):
         return err("Pedido no encontrado", 404)
     query("UPDATE pedidos SET pago_verificado=1, estado='confirmado' WHERE id=%s", (oid,), commit=True)
     return ok(msg="Pago Nequi verificado y pedido confirmado")
-    @app.route("/api/admin/productos", methods=["POST"])
+@app.route("/api/admin/productos", methods=["POST"])
     
-    @admin_required
+@admin_required
 def admin_crear_producto():
     d = request.json or {}
     nombre      = (d.get("nombre") or "").strip()
