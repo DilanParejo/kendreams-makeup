@@ -518,21 +518,112 @@ async function renderAdmin(main) {
 async function adminTab(tab) {
   document.querySelectorAll(".tab").forEach(t => t.classList.toggle("tab--active", t.textContent.toLowerCase().includes(tab)));
   const content = document.getElementById("admin-content");
+
   if (tab === "productos") {
-    const prods = await api("/productos");
+    const [prods, cats] = await Promise.all([api("/productos"), api("/categorias")]);
     content.innerHTML = `
+      <div style="margin-bottom:2rem;background:#fff3f7;border-radius:12px;padding:1.5rem">
+        <h3 style="margin-bottom:1rem">➕ Agregar nuevo producto</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="form-group"><label>Nombre</label><input type="text" id="np-nombre" class="input" placeholder="Nombre del producto"></div>
+          <div class="form-group"><label>Precio</label><input type="number" id="np-precio" class="input" placeholder="25000"></div>
+          <div class="form-group"><label>Stock</label><input type="number" id="np-stock" class="input" placeholder="10"></div>
+          <div class="form-group"><label>Categoría</label>
+            <select id="np-categoria" class="input">
+              ${cats.map(c => `<option value="${c.id}">${c.nombre}</option>`).join("")}
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>Descripción</label><input type="text" id="np-desc" class="input" placeholder="Descripción del producto"></div>
+        <div class="form-group"><label>URL de imagen</label><input type="text" id="np-imagen" class="input" placeholder="https://..."></div>
+        <div class="form-group" style="display:flex;align-items:center;gap:.5rem">
+          <input type="checkbox" id="np-destacado"> <label>Producto destacado</label>
+        </div>
+        <button class="btn btn--primary" onclick="adminCrearProducto()">✅ Agregar producto</button>
+      </div>
+
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>ID</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Stock</th></tr></thead>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Imagen</th><th>Acciones</th></tr></thead>
           <tbody>${prods.map(p => `
             <tr>
-              <td>${p.id}</td><td>${p.nombre}</td><td>${p.categoria_nombre}</td>
-              <td>${cop(p.precio)}</td><td>${p.stock}</td>
+              <td>${p.id}</td>
+              <td>${p.nombre}</td>
+              <td>${p.categoria_nombre}</td>
+              <td><input type="number" id="precio-${p.id}" value="${p.precio}" style="width:90px;padding:4px;border-radius:6px;border:1px solid #ddd"></td>
+              <td><input type="number" id="stock-${p.id}" value="${p.stock}" style="width:70px;padding:4px;border-radius:6px;border:1px solid #ddd"></td>
+              <td><input type="text" id="img-${p.id}" value="${p.imagen_url}" style="width:150px;padding:4px;border-radius:6px;border:1px solid #ddd"></td>
+              <td><button class="btn btn--primary btn--sm" onclick="adminActualizarProducto(${p.id})">💾 Guardar</button></td>
             </tr>`).join("")}
           </tbody>
         </table>
       </div>`;
+
   } else {
+    const pedidos = await api("/admin/pedidos");
+    content.innerHTML = `
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>ID</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
+          <tbody>${pedidos.map(p => `
+            <tr>
+              <td>#${p.id}</td><td>${p.cliente}</td><td>${cop(p.total)}</td>
+              <td>
+                <select onchange="cambiarEstadoPedido(${p.id}, this.value)" style="padding:4px;border-radius:6px;border:1px solid #ddd">
+                  ${["pendiente","confirmado","enviado","entregado","cancelado"].map(e =>
+                    `<option value="${e}" ${p.estado===e?"selected":""}>${e}</option>`
+                  ).join("")}
+                </select>
+              </td>
+              <td>${new Date(p.creado_en).toLocaleDateString("es-CO")}</td>
+              <td>${p.forma_pago==="nequi" ? `<button class="btn btn--sm btn--primary" onclick="verificarNequi(${p.id})">✅ Verificar Nequi</button>` : "Contra entrega"}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>`;
+  }
+}
+
+async function adminCrearProducto() {
+  const nombre     = document.getElementById("np-nombre").value.trim();
+  const precio     = document.getElementById("np-precio").value;
+  const stock      = document.getElementById("np-stock").value;
+  const categoria_id = document.getElementById("np-categoria").value;
+  const descripcion = document.getElementById("np-desc").value.trim();
+  const imagen_url  = document.getElementById("np-imagen").value.trim();
+  const destacado   = document.getElementById("np-destacado").checked ? 1 : 0;
+  if (!nombre || !precio || !categoria_id) { showToast("Completa nombre, precio y categoría", "error"); return; }
+  try {
+    await api("/admin/productos", { method: "POST", body: JSON.stringify({ nombre, precio, stock, categoria_id, descripcion, imagen_url, destacado }) });
+    showToast("✅ Producto agregado!");
+    adminTab("productos");
+  } catch(e) { showToast(e.message, "error"); }
+}
+
+async function adminActualizarProducto(pid) {
+  const precio     = document.getElementById(`precio-${pid}`).value;
+  const stock      = document.getElementById(`stock-${pid}`).value;
+  const imagen_url = document.getElementById(`img-${pid}`).value.trim();
+  try {
+    await api(`/admin/productos/${pid}`, { method: "PATCH", body: JSON.stringify({ precio, stock, imagen_url }) });
+    showToast("✅ Producto actualizado!");
+  } catch(e) { showToast(e.message, "error"); }
+}
+
+async function cambiarEstadoPedido(oid, estado) {
+  try {
+    await api(`/admin/pedidos/${oid}/estado`, { method: "PATCH", body: JSON.stringify({ estado }) });
+    showToast("✅ Estado actualizado!");
+  } catch(e) { showToast(e.message, "error"); }
+}
+
+async function verificarNequi(oid) {
+  try {
+    await api(`/pedidos/${oid}/verificar-nequi`, { method: "PATCH" });
+    showToast("✅ Pago Nequi verificado!");
+    adminTab("pedidos");
+  } catch(e) { showToast(e.message, "error"); }
+    } else {
     const pedidos = await api("/admin/pedidos");
     content.innerHTML = `
       <div class="admin-table-wrap">
