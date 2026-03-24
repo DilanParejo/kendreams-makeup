@@ -272,6 +272,62 @@ def verificar_nequi(oid):
         return err("Pedido no encontrado", 404)
     query("UPDATE pedidos SET pago_verificado=1, estado='confirmado' WHERE id=%s", (oid,), commit=True)
     return ok(msg="Pago Nequi verificado y pedido confirmado")
+    @app.route("/api/admin/productos", methods=["POST"])
+@admin_required
+def admin_crear_producto():
+    d = request.json or {}
+    nombre      = (d.get("nombre") or "").strip()
+    descripcion = (d.get("descripcion") or "").strip()
+    precio      = d.get("precio")
+    stock       = d.get("stock", 0)
+    categoria_id = d.get("categoria_id")
+    imagen_url  = (d.get("imagen_url") or "").strip()
+    destacado   = d.get("destacado", 0)
+
+    if not nombre or not precio or not categoria_id:
+        return err("Nombre, precio y categoría son obligatorios")
+
+    pid = query("""
+        INSERT INTO productos (nombre, descripcion, precio, stock, categoria_id, imagen_url, destacado, activo)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,1)
+    """, (nombre, descripcion, precio, stock, categoria_id, imagen_url, destacado), commit=True)
+    return ok({"producto_id": pid}, "Producto creado", 201)
+
+@app.route("/api/admin/productos/<int:pid>", methods=["PATCH"])
+@admin_required
+def admin_actualizar_producto(pid):
+    d = request.json or {}
+    campos = []
+    valores = []
+    if "precio" in d:
+        campos.append("precio=%s")
+        valores.append(d["precio"])
+    if "stock" in d:
+        campos.append("stock=%s")
+        valores.append(d["stock"])
+    if "imagen_url" in d:
+        campos.append("imagen_url=%s")
+        valores.append(d["imagen_url"])
+    if "nombre" in d:
+        campos.append("nombre=%s")
+        valores.append(d["nombre"])
+    if "descripcion" in d:
+        campos.append("descripcion=%s")
+        valores.append(d["descripcion"])
+    if "destacado" in d:
+        campos.append("destacado=%s")
+        valores.append(d["destacado"])
+    if not campos:
+        return err("Nada que actualizar")
+    valores.append(pid)
+    query(f"UPDATE productos SET {', '.join(campos)} WHERE id=%s", valores, commit=True)
+    return ok(msg="Producto actualizado")
+
+@app.route("/api/admin/productos/<int:pid>", methods=["DELETE"])
+@admin_required
+def admin_eliminar_producto(pid):
+    query("UPDATE productos SET activo=0 WHERE id=%s", (pid,), commit=True)
+    return ok(msg="Producto eliminado")
 @app.errorhandler(401)
 def unauthorized(e): return err(str(e.description or "No autorizado"), 401)
 @app.errorhandler(403)
